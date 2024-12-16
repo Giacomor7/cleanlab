@@ -151,6 +151,8 @@ from cleanlab.internal.validation import (
 )
 from cleanlab.experimental.label_issues_batched import find_label_issues_batched
 
+from cleanlab.lexical_quality_score import assess_text_quality
+
 
 class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
     """
@@ -239,7 +241,9 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
         label_quality_scores_kwargs={},
         verbose=False,
         low_memory=False,
+        use_lexical_quality_score=False
     ):
+        self.use_lexical_quality_score = use_lexical_quality_score
         self._default_clf = False
         if clf is None:
             # Use logistic regression if no classifier is provided.
@@ -487,6 +491,10 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
                     "If you already ran self.find_label_issues() and don't want to recompute, you "
                     "should pass the label_issues in as a parameter to this function next time."
                 )
+
+            text_quality_function = np.vectorize(assess_text_quality)
+            text_quality = text_quality_function(X)
+
             label_issues = self.find_label_issues(
                 X,
                 labels,
@@ -496,6 +504,7 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
                 inverse_noise_matrix=inverse_noise_matrix,
                 clf_kwargs=clf_kwargs,
                 validation_func=validation_func,
+                text_quality=text_quality
             )
 
         else:  # set args that may not have been set if `self.find_label_issues()` wasn't called yet
@@ -521,7 +530,8 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
             if self.verbose:
                 print("Computing label quality scores based on given pred_probs ...")
             self.label_issues_df["label_quality"] = get_label_quality_scores(
-                labels, pred_probs, **self.label_quality_scores_kwargs
+                labels, pred_probs, **self.label_quality_scores_kwargs,
+                use_lexical_quality_score=self.use_lexical_quality_score
             )
 
         self.label_issues_mask = self.label_issues_df["is_label_issue"].to_numpy()
@@ -705,6 +715,7 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
         save_space=False,
         clf_kwargs={},
         validation_func=None,
+        text_quality=None
     ) -> pd.DataFrame:
         """
         Identifies potential label issues in the dataset using confident learning.
@@ -938,7 +949,8 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
                 **self.find_label_issues_kwargs,
             )
         label_quality_scores = get_label_quality_scores(
-            labels, pred_probs, **self.label_quality_scores_kwargs
+            labels, pred_probs, **self.label_quality_scores_kwargs,
+            text_quality=text_quality
         )
         label_issues_df = pd.DataFrame(
             {"is_label_issue": label_issues_mask, "label_quality": label_quality_scores}

@@ -30,6 +30,7 @@ For multi-label classification, instead see :py:func:`multilabel_classification.
 Note: Label quality scores are most accurate when they are computed based on out-of-sample `pred_probs` from your model.
 To obtain out-of-sample predicted probabilities for every datapoint in your dataset, you can use :ref:`cross-validation <pred_probs_cross_val>`. This is encouraged to get better results.
 """
+from cProfile import label
 
 import numpy as np
 from sklearn.metrics import log_loss
@@ -46,6 +47,8 @@ from cleanlab.internal.label_quality_utils import (
     get_normalized_entropy,
 )
 
+from cleanlab.lexical_quality_score import assess_text_quality
+
 
 def get_label_quality_scores(
     labels: np.ndarray,
@@ -53,6 +56,8 @@ def get_label_quality_scores(
     *,
     method: str = "self_confidence",
     adjust_pred_probs: bool = False,
+    use_lexical_quality_score = False,
+    text_quality: np.ndarray = None,
 ) -> np.ndarray:
     """Returns a label quality score for each datapoint.
 
@@ -130,7 +135,10 @@ def get_label_quality_scores(
         X=None, y=labels, pred_probs=pred_probs, multi_label=False, allow_one_class=True
     )
     return _compute_label_quality_scores(
-        labels=labels, pred_probs=pred_probs, method=method, adjust_pred_probs=adjust_pred_probs
+        labels=labels, pred_probs=pred_probs, method=method,
+        adjust_pred_probs=adjust_pred_probs,
+        use_lexical_quality_score=use_lexical_quality_score,
+        text_quality=text_quality
     )
 
 
@@ -141,6 +149,8 @@ def _compute_label_quality_scores(
     method: str = "self_confidence",
     adjust_pred_probs: bool = False,
     confident_thresholds: Optional[np.ndarray] = None,
+    use_lexical_quality_score = False,
+    text_quality: np.ndarray = None,
 ) -> np.ndarray:
     """Internal implementation of get_label_quality_scores that assumes inputs
     have already been checked and are valid. This speeds things up.
@@ -169,6 +179,15 @@ def _compute_label_quality_scores(
 
     scoring_inputs = {"labels": labels, "pred_probs": pred_probs}
     label_quality_scores = scoring_func(**scoring_inputs)
+    #TODO: track all usages and ensure this only gets called when
+    # use_lexical_quality_score set to True. For now, always call this.
+    #if use_lexical_quality_score:
+    if text_quality is not None:
+        text_quality_function = np.vectorize(assess_text_quality)
+        #TODO: either pass in text to this point of code and assess text
+        # quality here (bad), or vectorize quality function and pass in text
+        # quality array (better)
+        label_quality_scores *= text_quality
     return label_quality_scores
 
 

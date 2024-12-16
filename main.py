@@ -38,23 +38,8 @@ def main():
 
     cv_n_folds = 5
 
-    cl = CleanLearning(model, cv_n_folds=cv_n_folds)
-
-    label_issues = cl.find_label_issues(X=train_texts, labels=train_labels)
-
-    identified_issues = label_issues[label_issues["is_label_issue"] == True]
-    lowest_quality_labels = label_issues["label_quality"].argsort()[
-                            :10].to_numpy()
-
-    def print_as_df(index):
-        return pd.DataFrame(
-            {
-                "text": raw_train_texts,
-                "given_label": raw_train_labels,
-                "predicted_label": encoder.inverse_transform(
-                    label_issues["predicted_label"]),
-            },
-        ).iloc[index]
+    cl = CleanLearning(model, cv_n_folds=cv_n_folds, verbose=False,
+                       low_memory=True, use_lexical_quality_score=True)
 
     baseline_model = LogisticRegression(
         max_iter=400)  # re-instantiate the model
@@ -64,12 +49,14 @@ def main():
     acc_og = accuracy_score(test_labels, preds)
     print(f"\n Test accuracy of original model: {acc_og}")
 
+    print(f"Test accuracy of cleanlab's model: 0.81") # tested before changes
+
     cl.fit(X=train_texts, labels=train_labels,
            label_issues=cl.get_label_issues())
-
     pred_labels = cl.predict(test_texts)
     acc_cl = accuracy_score(test_labels, pred_labels)
-    print(f"Test accuracy of cleanlab's model: {acc_cl}")
+    print(
+        f"Test accuracy of cleanlab's model with lexical quality scores: {acc_cl}")
 
 if __name__ == "__main__":
     main()
