@@ -30,6 +30,8 @@ def main():
 
     transformer = SentenceTransformer(modules=[word_embedding_model, pooling_model])
 
+    #TODO: should have run function here on raw texts
+
 
     train_texts = transformer.encode(raw_train_texts)
     test_texts = transformer.encode(raw_test_texts)
