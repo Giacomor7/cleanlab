@@ -89,4 +89,4 @@ def assess_text_quality(text):
     if readability_score != -1:
         scores.append(readability_score)
 
-    return sum(scores) / len(scores)
+    return sum(scores) / len(scores) if scores else 0
