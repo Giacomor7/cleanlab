@@ -492,9 +492,6 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
                     "should pass the label_issues in as a parameter to this function next time."
                 )
 
-            text_quality_function = np.vectorize(assess_text_quality)
-            text_quality = text_quality_function(X)
-
             label_issues = self.find_label_issues(
                 X,
                 labels,
@@ -504,7 +501,6 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
                 inverse_noise_matrix=inverse_noise_matrix,
                 clf_kwargs=clf_kwargs,
                 validation_func=validation_func,
-                text_quality=text_quality
             )
 
         else:  # set args that may not have been set if `self.find_label_issues()` wasn't called yet

@@ -183,7 +183,6 @@ def _compute_label_quality_scores(
     # use_lexical_quality_score set to True. For now, always call this.
     #if use_lexical_quality_score:
     if text_quality is not None:
-        text_quality_function = np.vectorize(assess_text_quality)
         #TODO: either pass in text to this point of code and assess text
         # quality here (bad), or vectorize quality function and pass in text
         # quality array (better)
