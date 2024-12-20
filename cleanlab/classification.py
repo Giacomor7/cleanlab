@@ -241,9 +241,7 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
         label_quality_scores_kwargs={},
         verbose=False,
         low_memory=False,
-        use_lexical_quality_score=False
     ):
-        self.use_lexical_quality_score = use_lexical_quality_score
         self._default_clf = False
         if clf is None:
             # Use logistic regression if no classifier is provided.
@@ -297,6 +295,7 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
         clf_final_kwargs={},
         validation_func=None,
         y=None,
+        weights_affect_thresholds=False,
     ) -> "Self":
         """
         Train the model `clf` with error-prone, noisy labels as if
@@ -501,6 +500,8 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
                 inverse_noise_matrix=inverse_noise_matrix,
                 clf_kwargs=clf_kwargs,
                 validation_func=validation_func,
+                weights_affect_thresholds=weights_affect_thresholds,
+                weights=sample_weight
             )
 
         else:  # set args that may not have been set if `self.find_label_issues()` wasn't called yet
@@ -711,7 +712,9 @@ class CleanLearning(BaseEstimator):  # Inherits sklearn classifier
         save_space=False,
         clf_kwargs={},
         validation_func=None,
-        text_quality=None
+        text_quality=None,
+        weights_affect_thresholds=False,
+        weights=None
     ) -> pd.DataFrame:
         """
         Identifies potential label issues in the dataset using confident learning.

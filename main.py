@@ -42,16 +42,16 @@ def main():
 
     cv_n_folds = 5
 
+    model = LogisticRegression(max_iter=400)
+    cl = CleanLearning(model, cv_n_folds=cv_n_folds, verbose=False,
+                       low_memory=True)
+
     baseline_model = LogisticRegression(max_iter=400)
     baseline_model.fit(X=train_texts, y=train_labels)
 
     preds = baseline_model.predict(test_texts)
     acc_og = accuracy_score(test_labels, preds)
     print(f"\n Test accuracy of original model: {acc_og}")
-
-    model = LogisticRegression(max_iter=400)
-    cl = CleanLearning(model, cv_n_folds=cv_n_folds, verbose=False,
-                       low_memory=True, use_lexical_quality_score=False)
 
     cl.fit(X=train_texts, labels=train_labels,
            label_issues=cl.get_label_issues())
@@ -65,10 +65,11 @@ def main():
 
     model = LogisticRegression(max_iter=400)
     cl = CleanLearning(model, cv_n_folds=cv_n_folds, verbose=False,
-                       low_memory=True, use_lexical_quality_score=False)
+                       low_memory=True)
 
     cl.fit(X=train_texts, labels=train_labels,
-           label_issues=cl.get_label_issues())
+           label_issues=cl.get_label_issues(), sample_weight=text_quality,
+           weights_affect_thresholds=True)
     pred_labels = cl.predict(test_texts)
     acc_cl_with_lexical_quality = accuracy_score(test_labels, pred_labels)
 
