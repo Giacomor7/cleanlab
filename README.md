@@ -10,7 +10,5 @@ all already added to requirements.txt:
 
 Run main.py to check the accuracy improvement from running cleanlab.
 
-I did not have time to implement unit tests because of major difficulties
-loading the pretrained model suggested by cleanlab
-(google/electra-small-discriminator). It probably would have been quicker to make-do
-with a similar model...
+Lexical quality metrics are used to further weight cleanlab predictions based
+on the spelling, grammar and coherence of the features.
